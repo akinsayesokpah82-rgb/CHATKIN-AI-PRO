@@ -1,67 +1,63 @@
-import React, { useState } from "react";
-import axios from "axios";
-import "./index.css";
+import { useState } from "react";
+import "./App.css";
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "https://chatkin-ai-vf6v.onrender.com";
-
-export default function App() {
+function App() {
+  const [messages, setMessages] = useState([
+    { role: "ai", content: "👋 Hi, I’m ChatKin AI. How can I help you today?" },
+  ]);
   const [input, setInput] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
-  const [model, setModel] = useState("gpt-4-turbo");
   const [loading, setLoading] = useState(false);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+
+    const newMessages = [...messages, { role: "user", content: input }];
+    setMessages(newMessages);
+    setInput("");
     setLoading(true);
+
     try {
-      const res = await axios.post(`${API_URL}/api/chat`, {
-        message: input,
-        model,
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
       });
-      setAiResponse(res.data.reply);
-    } catch (err) {
-      setAiResponse("🚧 ChatKin AI is temporarily unavailable. Please try again later.");
+      const data = await res.json();
+      setMessages([...newMessages, { role: "ai", content: data.reply }]);
+    } catch {
+      setMessages([
+        ...newMessages,
+        { role: "ai", content: "⚠️ Error: Unable to connect to ChatKin AI." },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="app">
-      <h1>🤖 ChatKin AI</h1>
-      <p>
-        Created by <b>Akin Saye Sokpah</b> —{" "}
-        <a href="mailto:sokpahakinsaye81@gmail.com">sokpahakinsaye81@gmail.com</a>{" "}
-        |{" "}
-        <a href="https://www.facebook.com/profile.php?id=61583456361691" target="_blank">
-          Facebook
-        </a>
-      </p>
+    <div className="chat-container">
+      <header>🤖 ChatKin AI</header>
 
-      <div className="model-selector">
-        <label>AI Model:</label>
-        <select value={model} onChange={(e) => setModel(e.target.value)}>
-          <option value="gpt-4-turbo">GPT-4</option>
-          <option value="gpt-3.5-turbo">GPT-3.5-Turbo</option>
-        </select>
+      <div className="chat-box">
+        {messages.map((m, i) => (
+          <div key={i} className={`msg ${m.role}`}>
+            <span>{m.content}</span>
+          </div>
+        ))}
+        {loading && <div className="msg ai">💭 Thinking...</div>}
       </div>
 
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Type your message..."
-      />
-      <button onClick={sendMessage} disabled={loading}>
-        {loading ? "Thinking..." : "Send"}
-      </button>
-
-      {aiResponse && (
-        <div className="response">
-          <h3>AI:</h3>
-          <p>{aiResponse}</p>
-        </div>
-      )}
+      <div className="input-area">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
 }
+
+export default App;
