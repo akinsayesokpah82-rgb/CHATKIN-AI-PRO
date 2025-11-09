@@ -1,58 +1,34 @@
+// server/index.js
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
-import dotenv from "dotenv";
-import OpenAI from "openai";
 import cors from "cors";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import routes from "./routes.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-app.use(cors());
-app.use(express.json());
-
-// Setup __dirname for ES module
+// Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Serve frontend build
-const clientPath = path.join(__dirname, "../client/dist");
-app.use(express.static(clientPath));
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// ✅ Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// API Routes
+app.use("/api", routes);
 
-// ✅ Chat route
-app.post("/api/chat", async (req, res) => {
-  try {
-    const { message, model } = req.body;
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
-
-    const completion = await openai.chat.completions.create({
-      model: model || "gpt-4-turbo",
-      messages: [{ role: "user", content: message }],
-    });
-
-    res.json({
-      reply: completion.choices[0].message.content,
-    });
-  } catch (error) {
-    console.error("AI Error:", error);
-    res.status(500).json({ error: "AI service error" });
-  }
-});
-
-// ✅ Send all other routes to index.html
+// Serve frontend (built files)
+app.use(express.static(path.join(__dirname, "public")));
 app.get("*", (req, res) => {
-  res.sendFile(path.join(clientPath, "index.html"));
+  res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`✅ ChatKin AI running on port ${PORT}`);
 });
