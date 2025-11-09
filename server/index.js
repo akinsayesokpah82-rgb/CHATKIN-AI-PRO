@@ -1,5 +1,4 @@
 import express from "express";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,7 +8,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// 🧠 Auto-detect correct directory (for Render deployment)
+// 🧠 Auto-detect correct directory (Render-friendly)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "public")));
@@ -20,9 +19,13 @@ app.post("/api/chat", async (req, res) => {
     const { message, model } = req.body;
 
     if (!process.env.OPENAI_API_KEY) {
+      console.error("🚨 Missing OpenAI API key in environment.");
       return res.json({ reply: "⚠️ Missing OpenAI API key on server." });
     }
 
+    console.log("🧠 Incoming message:", message);
+
+    // Use the native Node fetch (Node 18+)
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -41,20 +44,20 @@ app.post("/api/chat", async (req, res) => {
 
     const data = await response.json();
 
-    // 🧠 Handle both success and error
-    if (data.choices && data.choices.length > 0) {
+    if (data?.choices?.[0]?.message?.content) {
+      console.log("✅ OpenAI reply:", data.choices[0].message.content);
       res.json({ reply: data.choices[0].message.content });
     } else {
-      console.error("OpenAI error:", data);
-      res.json({ reply: "⚠️ OpenAI API error occurred." });
+      console.error("🧩 OpenAI API Error:", data);
+      res.json({ reply: "⚠️ ChatKin AI could not process your request." });
     }
   } catch (err) {
-    console.error("Server error:", err);
-    res.json({ reply: "⚠️ ChatKin AI backend error." });
+    console.error("🔥 ChatKin AI Server Error:", err);
+    res.status(500).json({ reply: "⚠️ ChatKin AI backend error." });
   }
 });
 
-// Serve frontend
+// ✅ Serve frontend (after build)
 app.get("*", (_, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
