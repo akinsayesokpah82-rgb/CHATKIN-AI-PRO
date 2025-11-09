@@ -1,32 +1,30 @@
-// server/index.js
+// ✅ ChatKin AI Backend — Fixed version
 import express from "express";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// ✅ Use built-in global fetch in Node.js 18+ (no need for node-fetch)
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// 🧩 Detect correct directory for Render deployment
+// 🧠 Auto-detect correct directory (Render-safe)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// 🗂️ Serve frontend files from /public
 app.use(express.static(path.join(__dirname, "public")));
 
-// 🧠 Chat endpoint
+// ✅ MAIN CHAT ENDPOINT
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, model } = req.body;
 
     if (!process.env.OPENAI_API_KEY) {
-      console.error("❌ Missing OpenAI API key");
       return res.json({ reply: "⚠️ Missing OpenAI API key on server." });
     }
 
+    // 🧠 Use built-in fetch (no need for node-fetch)
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,10 +34,10 @@ app.post("/api/chat", async (req, res) => {
       body: JSON.stringify({
         model: model || "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are ChatKin AI, a friendly and helpful AI assistant created by Akin Saye Sokpah." },
+          { role: "system", content: "You are ChatKin AI, a helpful and intelligent assistant created by Akin Saye Sokpah." },
           { role: "user", content: message },
         ],
-        max_tokens: 400,
+        max_tokens: 300,
       }),
     });
 
@@ -48,8 +46,8 @@ app.post("/api/chat", async (req, res) => {
     if (data.choices && data.choices.length > 0) {
       res.json({ reply: data.choices[0].message.content });
     } else {
-      console.error("OpenAI API Error:", data);
-      res.json({ reply: "⚠️ ChatKin AI could not process your request." });
+      console.error("OpenAI API error:", data);
+      res.json({ reply: "⚠️ OpenAI API error occurred. Please try again." });
     }
   } catch (err) {
     console.error("Server error:", err);
@@ -57,10 +55,11 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// 🏠 Frontend handler
+// ✅ Serve frontend (React/Vite build)
 app.get("*", (_, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ ChatKin AI backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ ChatKin AI backend is running successfully on port ${PORT}`));
