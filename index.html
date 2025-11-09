@@ -7,33 +7,43 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1>🤖 ChatKin AI</h1>
-      <div class="options">
+  <div id="container">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h2>ChatKin AI</h2>
+        <button id="new-chat">+ New Chat</button>
+      </div>
+      <div id="chat-history"></div>
+      <div class="sidebar-footer">
         <select id="model">
           <option value="gpt-3.5-turbo">GPT-3.5</option>
           <option value="gpt-4">GPT-4</option>
         </select>
         <button id="theme-toggle">🌙 Dark</button>
       </div>
-    </header>
+    </aside>
 
-    <main id="chat-box">
-      <div class="message ai fade-in">
-        👋 Hi, I’m <strong>ChatKin AI</strong>. How can I help you today?
+    <main id="chat-section">
+      <header>
+        <h1>🤖 ChatKin AI</h1>
+      </header>
+
+      <div id="chat-box">
+        <div class="message ai fade-in">
+          👋 Hi, I’m <strong>ChatKin AI</strong>. How can I help you today?
+        </div>
       </div>
+
+      <footer>
+        <textarea id="user-input" placeholder="Type your message..."></textarea>
+        <button id="send-btn">Send</button>
+      </footer>
+
+      <p class="footer-text">
+        Created by <strong>Akin Saye Sokpah</strong> — 
+        <a href="https://www.facebook.com/profile.php?id=61583456361691" target="_blank">Facebook</a>
+      </p>
     </main>
-
-    <footer>
-      <textarea id="user-input" placeholder="Type your message..."></textarea>
-      <button id="send-btn">Send</button>
-    </footer>
-
-    <p class="footer-text">
-      Created by <strong>Akin Saye Sokpah</strong> — 
-      <a href="https://www.facebook.com/profile.php?id=61583456361691" target="_blank">Facebook</a>
-    </p>
   </div>
 
   <script src="script.js"></script>
