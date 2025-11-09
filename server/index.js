@@ -1,58 +1,64 @@
-import express from "express";
-import path from "path";
-import cors from "cors";
-import dotenv from "dotenv";
-import fetch from "node-fetch";
+import express from 'express';
+import fetch from 'node-fetch';
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 10000;
+
+// Get directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 🧠 Multiple fallback proxy APIs (auto-switch if one fails)
-const PROXIES = [
-  "https://api.gpt-proxy.online/v1/chat/completions",
-  "https://api.openai-proxy.com/v1/chat/completions",
-  "https://freegptproxy.xyz/v1/chat/completions",
-];
-
-// 🧩 Auto-select GPT-4 if user chooses it, else GPT-3.5
-async function fetchAIResponse(message, model) {
-  for (const proxy of PROXIES) {
-    try {
-      const response = await fetch(proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: model || "gpt-3.5-turbo",
-          messages: [{ role: "user", content: message }],
-        }),
-      });
-
-      if (!response.ok) throw new Error(`Proxy failed: ${proxy}`);
-      const data = await response.json();
-      const reply = data?.choices?.[0]?.message?.content;
-      if (reply) return reply;
-    } catch (err) {
-      console.warn(`⚠️ ${proxy} failed, trying next...`);
-    }
-  }
-  return "⚠️ All proxy servers are busy. Please try again later.";
-}
-
-app.post("/api/chat", async (req, res) => {
+// ✅ Chat route
+app.post('/api/chat', async (req, res) => {
   const { message, model } = req.body;
-  const reply = await fetchAIResponse(message, model);
-  res.json({ reply });
+
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Missing API key in environment variables.' });
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: message }],
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('OpenAI API Error:', data.error);
+      return res.status(500).json({ error: data.error.message });
+    }
+
+    const reply = data.choices?.[0]?.message?.content || 'No response.';
+    res.json({ reply });
+
+  } catch (error) {
+    console.error('Server Error:', error);
+    res.status(500).json({ error: 'Failed to connect to OpenAI API.' });
+  }
 });
 
-// ✅ Serve frontend correctly
-const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, "server", "public")));
-app.get("*", (req, res) =>
-  res.sendFile(path.join(__dirname, "server", "public", "index.html"))
-);
+// ✅ Serve frontend
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`✅ ChatKin AI running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ ChatKin AI running on port ${PORT}`);
+});
