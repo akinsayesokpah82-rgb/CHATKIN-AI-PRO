@@ -1,0 +1,154 @@
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Poppins", sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #0d1117;
+  color: white;
+}
+
+header {
+  background: #161b22;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #30363d;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+select, button {
+  background: #21262d;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+select:hover, button:hover {
+  background: #30363d;
+}
+
+main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  line-height: 1.5;
+  animation: fade-in 0.3s ease;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #238636;
+}
+
+.message.ai {
+  align-self: flex-start;
+  background: #30363d;
+}
+
+footer {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #161b22;
+  border-top: 1px solid #30363d;
+}
+
+#user-input {
+  flex: 1;
+  resize: none;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: #0d1117;
+  color: white;
+  height: 45px;
+}
+
+#send-btn {
+  margin-left: 10px;
+  background: #238636;
+  padding: 10px 16px;
+}
+
+.footer-text {
+  text-align: center;
+  padding: 8px;
+  font-size: 0.9rem;
+  background: #0d1117;
+  border-top: 1px solid #30363d;
+}
+
+/* Typing indicator */
+.typing {
+  font-style: italic;
+  color: #8b949e;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* Fade animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Light Theme */
+.light {
+  background: #f2f2f2;
+  color: #000;
+}
+
+.light header, .light footer {
+  background: #ffffff;
+  color: #000;
+}
+
+.light .message.ai {
+  background: #e5e5e5;
+  color: #000;
+}
+
+.light .message.user {
+  background: #007bff;
+}
