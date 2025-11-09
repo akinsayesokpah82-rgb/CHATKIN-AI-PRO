@@ -1,50 +1,59 @@
 import express from "express";
-import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import cors from "cors";
 
 dotenv.config();
+
 const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 10000;
+
 app.use(cors());
+app.use(express.json());
 
-// Serve frontend
-app.use(express.static("public"));
+// Setup __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// ✅ Serve frontend (Vite build output)
+const clientPath = path.join(__dirname, "../client/dist");
+app.use(express.static(clientPath));
+
+// ✅ Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.get("/", (req, res) => {
-  res.send("🧠 ChatKin AI backend is running successfully!");
-});
-
+// ✅ Chat endpoint
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, model } = req.body;
 
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ reply: "⚠️ Missing OpenAI API key." });
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
     }
 
-    const response = await openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: model || "gpt-4-turbo",
-      messages: [
-        { role: "system", content: "You are ChatKin AI, created by Akin Saye Sokpah." },
-        { role: "user", content: message },
-      ],
+      messages: [{ role: "user", content: message }],
     });
 
-    res.json({ reply: response.choices[0].message.content });
-  } catch (error) {
-    console.error("AI Error:", error);
-    res.status(500).json({
-      reply: "🚧 ChatKin AI is temporarily unavailable. Please try again later.",
+    res.json({
+      reply: completion.choices[0].message.content,
     });
+  } catch (error) {
+    console.error("OpenAI API Error:", error);
+    res.status(500).json({ error: "AI service error" });
   }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () =>
-  console.log(`✅ ChatKin AI server running on ${PORT}`)
-);
+// ✅ All other routes → serve index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(clientPath, "index.html"));
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ ChatKin AI server running on ${PORT}`);
+});
