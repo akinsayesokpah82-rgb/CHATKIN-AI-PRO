@@ -1,6 +1,7 @@
 {
   "name": "chatkin-client",
   "version": "1.0.0",
+  "description": "Frontend for ChatKin AI",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -8,13 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "axios": "^1.6.2",
-    "firebase": "^11.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "axios": "^1.6.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.3",
-    "vite": "^4.5.14"
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^4.5.3"
   }
 }
