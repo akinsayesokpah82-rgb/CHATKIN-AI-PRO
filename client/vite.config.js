@@ -1,18 +1,14 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
-// ✅ Vite config for ChatKin AI
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Output frontend build directly inside the backend public folder
-    outDir: '../server/public',
+    outDir: path.resolve(__dirname, "../server/public"),
     emptyOutDir: true,
   },
   server: {
-    // Allow local dev to talk to backend
-    proxy: {
-      '/api': 'http://localhost:10000',
-    },
+    port: 5173,
   },
 });
