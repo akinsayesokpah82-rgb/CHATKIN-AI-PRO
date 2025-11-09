@@ -1,9 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import OpenAI from "openai";
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -11,50 +9,56 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const PORT = process.env.PORT || 10000;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+// Home route
+app.get("/", (req, res) => {
+  res.send("🧠 ChatKin AI backend is running successfully!");
 });
 
-// Handle message from client
+// Chat route
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, model } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ error: "Message content required." });
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({ error: "Missing OpenAI API key." });
     }
 
-    const response = await openai.chat.completions.create({
-      model: model || "gpt-4",
-      messages: [
-        { role: "system", content: "You are ChatKin AI, a helpful assistant created by Akin Saye Sokpah." },
-        { role: "user", content: message },
-      ],
+    const openAIModel = model || "gpt-4o-mini";
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: openAIModel,
+        messages: [
+          {
+            role: "system",
+            content: `You are ChatKin AI — a helpful, intelligent assistant created by Akin Saye Sokpah (Email: sokpahakinsaye81@gmail.com, Facebook: https://www.facebook.com/profile.php?id=61583456361691). Always reply clearly and respectfully.`,
+          },
+          { role: "user", content: message },
+        ],
+      }),
     });
 
-    res.json({ reply: response.choices[0].message.content });
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("OpenAI Error:", data.error);
+      return res.status(500).json({ error: data.error.message });
+    }
+
+    const reply = data.choices?.[0]?.message?.content || "No reply received.";
+    res.json({ reply });
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Error processing the AI request." });
+    console.error("Server Error:", error);
+    res.status(500).json({ error: "Failed to get AI response." });
   }
 });
 
-// Serve frontend (client build)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const publicPath = path.join(__dirname, "public");
-
-app.use(express.static(publicPath));
-
-// Fallback route (for React Router)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
-});
-
-// Render assigns PORT dynamically
-const PORT = process.env.PORT || 10000;
-
-app.listen(PORT, () => {
-  console.log(`✅ ChatKin AI server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
