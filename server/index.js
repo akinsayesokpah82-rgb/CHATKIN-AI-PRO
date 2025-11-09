@@ -13,24 +13,23 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// Setup __dirname for ES modules
+// Setup __dirname for ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Serve frontend (Vite build output)
+// ✅ Serve frontend build
 const clientPath = path.join(__dirname, "../client/dist");
 app.use(express.static(clientPath));
 
-// ✅ Initialize OpenAI client
+// ✅ Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Chat endpoint
+// ✅ Chat route
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, model } = req.body;
-
     if (!message) {
       return res.status(400).json({ error: "Message is required" });
     }
@@ -44,16 +43,16 @@ app.post("/api/chat", async (req, res) => {
       reply: completion.choices[0].message.content,
     });
   } catch (error) {
-    console.error("OpenAI API Error:", error);
+    console.error("AI Error:", error);
     res.status(500).json({ error: "AI service error" });
   }
 });
 
-// ✅ All other routes → serve index.html
+// ✅ Send all other routes to index.html
 app.get("*", (req, res) => {
   res.sendFile(path.join(clientPath, "index.html"));
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ ChatKin AI server running on ${PORT}`);
+  console.log(`✅ ChatKin AI running on port ${PORT}`);
 });
