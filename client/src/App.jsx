@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 function App() {
@@ -7,10 +7,17 @@ function App() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState("gpt-3.5-turbo");
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(scrollToBottom, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -20,14 +27,15 @@ function App() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input, model }),
       });
       const data = await res.json();
+
       setMessages([...newMessages, { role: "ai", content: data.reply }]);
     } catch {
       setMessages([
         ...newMessages,
-        { role: "ai", content: "⚠️ Error: Unable to connect to ChatKin AI." },
+        { role: "ai", content: "⚠️ Unable to reach ChatKin AI right now." },
       ]);
     } finally {
       setLoading(false);
@@ -36,7 +44,13 @@ function App() {
 
   return (
     <div className="chat-container">
-      <header>🤖 ChatKin AI</header>
+      <header>
+        🤖 ChatKin AI
+        <select value={model} onChange={(e) => setModel(e.target.value)}>
+          <option value="gpt-3.5-turbo">GPT-3.5</option>
+          <option value="gpt-4-turbo">GPT-4</option>
+        </select>
+      </header>
 
       <div className="chat-box">
         {messages.map((m, i) => (
@@ -44,7 +58,18 @@ function App() {
             <span>{m.content}</span>
           </div>
         ))}
-        {loading && <div className="msg ai">💭 Thinking...</div>}
+
+        {loading && (
+          <div className="msg ai typing">
+            <span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+            </span>
+          </div>
+        )}
+
+        <div ref={messagesEndRef}></div>
       </div>
 
       <div className="input-area">
