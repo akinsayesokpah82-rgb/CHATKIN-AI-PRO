@@ -1,19 +1,25 @@
 // server/routes.js
 import express from "express";
 import dotenv from "dotenv";
-import fetch from "node-fetch";
+import OpenAI from "openai";
 
 dotenv.config();
 const router = express.Router();
 
-// Example simple API route
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // set this in Render settings!
+});
+
 router.post("/chat", async (req, res) => {
-  const { message } = req.body;
+  const { message, model } = req.body;
 
   try {
-    // Replace with your OpenAI API logic
-    const reply = `🤖 ChatKin AI says: I received your message — "${message}"`;
+    const completion = await openai.chat.completions.create({
+      model: model || "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message }],
+    });
 
+    const reply = completion.choices[0].message.content;
     res.json({ reply });
   } catch (err) {
     console.error("Chat error:", err);
