@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🤖 ChatKin AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🤖 ChatKin AI</h1>
+      <div class="options">
+        <select id="model">
+          <option value="gpt-3.5-turbo">GPT-3.5</option>
+          <option value="gpt-4">GPT-4</option>
+        </select>
+        <button id="theme-toggle">🌙 Dark</button>
+      </div>
+    </header>
+
+    <main id="chat-box">
+      <div class="message ai fade-in">
+        👋 Hi, I’m <strong>ChatKin AI</strong>. How can I help you today?
+      </div>
+    </main>
+
+    <footer>
+      <textarea id="user-input" placeholder="Type your message..."></textarea>
+      <button id="send-btn">Send</button>
+    </footer>
+
+    <p class="footer-text">
+      Created by <strong>Akin Saye Sokpah</strong> — 
+      <a href="https://www.facebook.com/profile.php?id=61583456361691" target="_blank">Facebook</a>
+    </p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
