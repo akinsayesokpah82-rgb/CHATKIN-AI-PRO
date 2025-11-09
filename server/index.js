@@ -1,47 +1,50 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import cors from "cors";
-import OpenAI from "openai";
 import dotenv from "dotenv";
+import OpenAI from "openai";
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ✅ OpenAI setup
-const client = new OpenAI({
+// Serve frontend
+app.use(express.static("public"));
+
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Chat endpoint
+app.get("/", (req, res) => {
+  res.send("🧠 ChatKin AI backend is running successfully!");
+});
+
 app.post("/api/chat", async (req, res) => {
   try {
     const { message, model } = req.body;
-    const completion = await client.chat.completions.create({
-      model: model || "gpt-4",
-      messages: [{ role: "user", content: message }],
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ reply: "⚠️ Missing OpenAI API key." });
+    }
+
+    const response = await openai.chat.completions.create({
+      model: model || "gpt-4-turbo",
+      messages: [
+        { role: "system", content: "You are ChatKin AI, created by Akin Saye Sokpah." },
+        { role: "user", content: message },
+      ],
     });
-    res.json({ reply: completion.choices[0].message.content });
-  } catch (err) {
-    console.error("AI Error:", err);
-    res.status(500).json({ error: "Error contacting AI." });
+
+    res.json({ reply: response.choices[0].message.content });
+  } catch (error) {
+    console.error("AI Error:", error);
+    res.status(500).json({
+      reply: "🚧 ChatKin AI is temporarily unavailable. Please try again later.",
+    });
   }
 });
 
-// ✅ Serve built React app
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const clientPath = path.join(__dirname, "public");
-app.use(express.static(clientPath));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(clientPath, "index.html"));
-});
-
-// ✅ Start server
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`✅ ChatKin AI server running on ${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`✅ ChatKin AI server running on ${PORT}`)
+);
