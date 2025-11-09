@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
@@ -6,6 +6,30 @@ function App() {
   const [chat, setChat] = useState([]);
   const [model, setModel] = useState("gpt-3.5-turbo");
   const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const [typingText, setTypingText] = useState("");
+
+  // Toggle dark/light mode
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    document.body.className = newTheme;
+  };
+
+  // Typing animation effect
+  useEffect(() => {
+    if (!loading || chat.length === 0) return;
+    const typingMsg = "Typing...";
+    let index = 0;
+    const interval = setInterval(() => {
+      setTypingText(typingMsg.slice(0, index + 1));
+      index++;
+      if (index > typingMsg.length) {
+        index = 0;
+      }
+    }, 150);
+    return () => clearInterval(interval);
+  }, [loading, chat]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -33,24 +57,30 @@ function App() {
           { role: "assistant", content: "⚠️ ChatKin AI server error." },
         ]);
       }
-    } catch (err) {
+    } catch {
       setChat([
         ...newChat,
         { role: "assistant", content: "⚠️ Server unreachable. Try again later." },
       ]);
     } finally {
       setLoading(false);
+      setTypingText("");
     }
   };
 
   return (
-    <div className="app">
+    <div className={`app ${theme}`}>
       <header className="header">
         <h1>🤖 ChatKin AI</h1>
-        <select value={model} onChange={(e) => setModel(e.target.value)}>
-          <option value="gpt-3.5-turbo">GPT-3.5</option>
-          <option value="gpt-4">GPT-4</option>
-        </select>
+        <div className="controls">
+          <select value={model} onChange={(e) => setModel(e.target.value)}>
+            <option value="gpt-3.5-turbo">GPT-3.5</option>
+            <option value="gpt-4">GPT-4</option>
+          </select>
+          <button onClick={toggleTheme}>
+            {theme === "dark" ? "🌞 Light" : "🌙 Dark"}
+          </button>
+        </div>
       </header>
 
       <main className="chat-window">
@@ -69,7 +99,7 @@ function App() {
 
         {loading && (
           <div className="message assistant">
-            <strong>🤖 ChatKin AI:</strong> <span>Typing...</span>
+            <strong>🤖 ChatKin AI:</strong> <span>{typingText}</span>
           </div>
         )}
       </main>
